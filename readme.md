@@ -1,4 +1,4 @@
-# CapNHook-Math
+# CapNHook-ML
 
 Optimised math library for CapnHook repository.
 
@@ -9,8 +9,8 @@ Optimised math library for CapnHook repository.
     - [x] broadcasting
     - [x] reduction operations
     - [x] linear algebra operations
-- [ ] common ML operations:
-    - [ ] matrix multiplication
+- [-] common ML operations:
+    - [x] matrix multiplication
     - [ ] convolution
     - [ ] pooling
     - [ ] activation functions
