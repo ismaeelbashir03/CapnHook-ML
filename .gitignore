@@ -24,6 +24,7 @@ dist/
 *.whl
 .venv
 *.lock
+.pytest_cache
 
 # macOS
 .DS_Store
