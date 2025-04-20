@@ -1,0 +1,9 @@
+[project]
+name = "capnhook-ml"
+version = "0.1.0"
+description = "Optimised SIMD libary for machine learning"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy>=2.2.5",
+]

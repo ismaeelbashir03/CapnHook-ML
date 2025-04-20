@@ -3,12 +3,12 @@
 Optimised math library for CapnHook repository.
 
 ## Features
-- [ ] numpy ndarray support
-- [ ] numpy like API with:
-    - [ ] elementwise operations
-    - [ ] broadcasting
-    - [ ] reduction operations
-    - [ ] linear algebra operations
+- [x] numpy ndarray support
+- [x] numpy like API with:
+    - [x] elementwise operations
+    - [x] broadcasting
+    - [x] reduction operations
+    - [x] linear algebra operations
 - [ ] common ML operations:
     - [ ] matrix multiplication
     - [ ] convolution
