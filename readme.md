@@ -33,5 +33,5 @@ We motivate the use of libraries/technologies through very basic benchmarks. The
 ## Installation
 To install this library, run:
 ```bash
-python setup.py install
+pip install capnhook_ml
 ```
