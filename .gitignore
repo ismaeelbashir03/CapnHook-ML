@@ -1,0 +1,37 @@
+# cpp stuff
+compile_commands.json
+*.o
+*.so
+*.a
+*.out
+**/build/
+CMakeFiles/
+CMakeCache.txt
+CMakeOutput.log
+CMakeError.log
+*.cmake
+Makefile
+CMakeUserPresets.json
+
+# python stuff
+__pycache__/
+dist/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+*.whl
+.venv
+*.lock
+.pytest_cache
+
+# macOS
+.DS_Store
+
+# vscode
+.vscode/
+
+# misc
+.cache
+

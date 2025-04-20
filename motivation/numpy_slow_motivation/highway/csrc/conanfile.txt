@@ -1,0 +1,6 @@
+[requires]
+highway/1.2.0
+
+[generators]
+CMakeDeps
+CMakeToolchain

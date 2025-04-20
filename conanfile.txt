@@ -1,0 +1,11 @@
+[requires]
+highway/1.2.0
+openblas/0.3.27
+
+[generators]
+CMakeToolchain
+CMakeDeps
+
+[options]
+openblas/*:shared=True
+openblas/*:build_lapack=True
