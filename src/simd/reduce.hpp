@@ -10,6 +10,7 @@
 #include <hwy/highway.h>
 
 #include "../alloc.hpp"
+#include "binary.hpp"
 
 namespace nb = nanobind;
 
@@ -22,43 +23,57 @@ template <typename T>
 T reduce_sum(nb::ndarray<T, nb::c_contig> a) {
     const T* A = a.data();
     size_t N = a.shape(0);
+    
+    if (N == 0) throw std::runtime_error("reduce_sum: zero-length input");
+    if (N == 1) return A[0];
+    
     const ScalableTag<T> d;
     auto acc = Zero(d);
     size_t i = 0, L = Lanes(d);
+    
+    if (N < L) {
+        T sum = T(0);
+        for (size_t j = 0; j < N; j++) {
+            sum += A[j];
+        }
+        return sum;
+    }
+    
     for (; i + L <= N; i += L) {
         acc = Add(acc, Load(d, A + i));
     }
+    
     T total = GetLane(SumOfLanes(d, acc));
     for (; i < N; ++i) total += A[i];
     return total;
 }
 
 template <typename T>
-T reduce_prod(nb::ndarray<T, nb::c_contig> a) {
-    const T* A = a.data();
-    size_t N = a.shape(0);
-    const ScalableTag<T> d;
-    auto acc = Set(d, T(1));
-    size_t i = 0, L = Lanes(d);
-    for (; i + L <= N; i += L) {
-        acc = Mul(acc, Load(d, A + i));
-    }
-    T product = GetLane(SumOfLanes(d, acc));
-    for (; i < N; ++i) product *= A[i];
-    return product;
-}
-
-template <typename T>
 T reduce_min(nb::ndarray<T, nb::c_contig> a) {
     const T* A = a.data();
     size_t N = a.shape(0);
+    
     if (N == 0) throw std::runtime_error("reduce_min: zero-length input");
+    if (N == 1) return A[0];
+    
     const ScalableTag<T> d;
-    auto acc = Load(d, A);  // seed
-    size_t i = Lanes(d), L = Lanes(d);
+    size_t L = Lanes(d);
+    
+    if (N < L) {
+        T min_val = A[0];
+        for (size_t j = 1; j < N; j++) {
+            min_val = std::min(min_val, A[j]);
+        }
+        return min_val;
+    }
+    
+    auto acc = Load(d, A);
+    size_t i = L; 
+    
     for (; i + L <= N; i += L) {
         acc = Min(acc, Load(d, A + i));
     }
+    
     T m = GetLane(MinOfLanes(d, acc));
     for (; i < N; ++i) m = std::min(m, A[i]);
     return m;
@@ -68,16 +83,62 @@ template <typename T>
 T reduce_max(nb::ndarray<T, nb::c_contig> a) {
     const T* A = a.data();
     size_t N = a.shape(0);
+    
     if (N == 0) throw std::runtime_error("reduce_max: zero-length input");
+    if (N == 1) return A[0]; 
+    
     const ScalableTag<T> d;
-    auto acc = Load(d, A);
-    size_t i = Lanes(d), L = Lanes(d);
+    size_t L = Lanes(d);
+    
+    if (N < L) {
+        T max_val = A[0];
+        for (size_t j = 1; j < N; j++) {
+            max_val = std::max(max_val, A[j]);
+        }
+        return max_val;
+    }
+    
+    auto acc = Load(d, A); 
+    size_t i = L; 
+    
     for (; i + L <= N; i += L) {
         acc = Max(acc, Load(d, A + i));
     }
+    
     T m = GetLane(MaxOfLanes(d, acc));
     for (; i < N; ++i) m = std::max(m, A[i]);
     return m;
+}
+
+template <typename T>
+T reduce_prod(nb::ndarray<T, nb::c_contig> a) {
+    const T* A = a.data();
+    size_t N = a.shape(0);
+    
+    if (N == 0) throw std::runtime_error("reduce_prod: zero-length input");
+    if (N == 1) return A[0]; 
+    
+    const ScalableTag<T> d;
+    size_t L = Lanes(d);
+    
+    if (N < L) {
+        T prod = T(1);
+        for (size_t j = 0; j < N; j++) {
+            prod *= A[j];
+        }
+        return prod;
+    }
+    
+    auto acc = Set(d, T(1));
+    size_t i = 0;
+    
+    for (; i + L <= N; i += L) {
+        acc = Mul(acc, Load(d, A + i));
+    }
+    
+    T product = GetLane(SumOfLanes(d, acc));
+    for (; i < N; ++i) product *= A[i];
+    return product;
 }
 
 

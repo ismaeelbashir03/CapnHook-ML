@@ -13,13 +13,13 @@ void register_ops(nanobind::module_& m) {
     using namespace capnhook;
     
     // binary operations
-    m.def("add", static_cast<nb::ndarray<T, nb::ndim<1>> (*)(nb::ndarray<T, nb::c_contig>, nb::ndarray<T, nb::c_contig>)>(&add),
+    m.def("add", static_cast<nb::ndarray<nb::numpy, T, nb::ndim<1>> (*)(nb::ndarray<T, nb::c_contig>, nb::ndarray<T, nb::c_contig>)>(&add),
           "Element-wise addition");
-    m.def("sub", static_cast<nb::ndarray<T, nb::ndim<1>> (*)(nb::ndarray<T, nb::c_contig>, nb::ndarray<T, nb::c_contig>)>(&sub),
+    m.def("sub", static_cast<nb::ndarray<nb::numpy, T, nb::ndim<1>> (*)(nb::ndarray<T, nb::c_contig>, nb::ndarray<T, nb::c_contig>)>(&sub),
           "Element-wise subtraction");
-    m.def("mul", static_cast<nb::ndarray<T, nb::ndim<1>> (*)(nb::ndarray<T, nb::c_contig>, nb::ndarray<T, nb::c_contig>)>(&mul),
+    m.def("mul", static_cast<nb::ndarray<nb::numpy, T, nb::ndim<1>> (*)(nb::ndarray<T, nb::c_contig>, nb::ndarray<T, nb::c_contig>)>(&mul),
           "Element-wise multiplication");
-    m.def("div", static_cast<nb::ndarray<T, nb::ndim<1>> (*)(nb::ndarray<T, nb::c_contig>, nb::ndarray<T, nb::c_contig>)>(&div),
+    m.def("div", static_cast<nb::ndarray<nb::numpy, T, nb::ndim<1>> (*)(nb::ndarray<T, nb::c_contig>, nb::ndarray<T, nb::c_contig>)>(&div),
           "Element-wise division");
     
     // unary operations
@@ -38,7 +38,7 @@ void register_ops(nanobind::module_& m) {
     m.def("acos", static_cast<nb::ndarray<nb::numpy, T, nb::ndim<1>> (*)(nb::ndarray<T, nb::c_contig>)>(&acos),
           "Element-wise arccosine");
     
-    // reduction operations
+    // reduction operations 
     m.def("reduce_sum", static_cast<T (*)(nb::ndarray<T, nb::c_contig>)>(&reduce_sum),
           "Sum reduction");
     m.def("reduce_prod", static_cast<T (*)(nb::ndarray<T, nb::c_contig>)>(&reduce_prod),
@@ -78,7 +78,7 @@ void register_ops(nanobind::module_& m) {
     m.def("norm", static_cast<T (*)(nb::ndarray<T, nb::c_contig>)>(&norm),
           "Vector norm (Euclidean/L2)");
     m.def("dot", static_cast<T (*)(nb::ndarray<T, nb::c_contig>, nb::ndarray<T, nb::c_contig>)>(&dot),
-		  "Dot product of two vectors");
+          "Dot product of two vectors");
 }
 
 } // registry
