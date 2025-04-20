@@ -3,16 +3,29 @@
 Optimised math library for CapnHook repository.
 
 ## Features
-- [ ] SIMD Vector basic arithmetic (add, dot, product)
-- [ ] SIMD Matrix basic arithmetic (add, dot, product)
-- [ ] Co-variance and Correlation functions
-- [ ] Basic statistics functions (distributions)
-- [ ] Basic linear algebra functions (determinant, inverse)
-- [ ] Basic calculus functions (derivative, integral)
-- [ ] Basic geometry functions (distance, angle)
-- [ ] Basic trigonometry functions (sin, cos, tan)
+- [ ] numpy ndarray support
+- [ ] numpy like API with:
+    - [ ] elementwise operations
+    - [ ] broadcasting
+    - [ ] reduction operations
+    - [ ] linear algebra operations
+- [ ] common ML operations:
+    - [ ] matrix multiplication
+    - [ ] convolution
+    - [ ] pooling
+    - [ ] activation functions
+    - [ ] loss functions
+    - [ ] optimizers
+- [ ] common statistics operations:
+    - [ ] mean
+    - [ ] median
+    - [ ] mode
+    - [ ] variance
+    - [ ] standard deviation
+    - [ ] covariance
+    - [ ] correlation
 
 ## Motivation
 
-We motivate the use of libraries/technologies through very basic benchmarks. The goal is to show the performance of the library/technology in a very basic way. Currently, we benchmark:
-- [numpy vs numba vs highway (simd cpp library)](motivation/numpy_motivation)
+We motivate the use of libraries/technologies through very basic benchmarks. The goal is to show the reasoning behind the design decisions of this project. Currently, we motivate:
+- [Why this library exists](motivation/numpy_slow_motivation/)
