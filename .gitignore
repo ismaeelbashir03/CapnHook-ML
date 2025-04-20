@@ -15,6 +15,7 @@ CMakeUserPresets.json
 
 # python stuff
 __pycache__/
+dist/
 *.py[cod]
 *.pyo
 *.pyd

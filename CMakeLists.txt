@@ -7,6 +7,14 @@ project(capnhook_ml LANGUAGES CXX)
 
 include(${CMAKE_BINARY_DIR}/conan_toolchain.cmake)
 
+# include(FetchContent)
+# FetchContent_Declare(
+#   nanobind
+#   GIT_REPOSITORY https://github.com/wjakob/nanobind.git
+#   GIT_TAG        v0.13.6
+# )
+# FetchContent_MakeAvailable(nanobind)
+
 # get conan packages
 find_package(highway REQUIRED CONFIG)
 find_package(OpenBLAS REQUIRED CONFIG)

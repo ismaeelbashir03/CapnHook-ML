@@ -55,6 +55,7 @@ setup(
     name='capnhook_ml',
     version='0.1',
     author='ismaeelbashir03',
+    include_package_data=True,
     ext_modules=[CMakeExtension('capnhook_ml', sourcedir='.')],
     cmdclass={
         'build_ext': build_ext,

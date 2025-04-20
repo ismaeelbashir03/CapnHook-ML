@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel", "conan>=1.65.0", "nanobind"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "capnhook-ml"
 version = "0.1.0"
@@ -6,4 +10,27 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "numpy>=2.2.5",
+    "conan>=1.65.0",
+    "nanobind",
 ]
+
+license = { file = "LICENSE" }
+
+authors = [
+  { name = "Ismaeel Bashir", email = "ismaeelbashir2003@gmail.com" },
+]
+
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Topic :: Software Development :: Libraries",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3 :: Only",
+  "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/ismaeelbashir03/CapnHook-ML"
+"Issue Tracker" = "https://github.com/ismaeelbashir03/CapnHook-ML/issues"
+"Documentation"  = "https://ismaeelbashir03.github.io/CapnHook-ML/"

@@ -1,0 +1,5 @@
+include conanfile.txt
+include CMakeLists.txt
+
+recursive-include src *.cpp *.hpp
+recursive-include include *.hpp *.h

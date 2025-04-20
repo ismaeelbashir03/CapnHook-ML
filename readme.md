@@ -29,3 +29,9 @@ Optimised math library for CapnHook repository.
 
 We motivate the use of libraries/technologies through very basic benchmarks. The goal is to show the reasoning behind the design decisions of this project. Currently, we motivate:
 - [Why this library exists](motivation/numpy_slow_motivation/)
+
+## Installation
+To install this library, run:
+```bash
+python setup.py install
+```
