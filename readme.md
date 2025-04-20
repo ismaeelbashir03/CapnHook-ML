@@ -11,3 +11,8 @@ Optimised math library for CapnHook repository.
 - [ ] Basic calculus functions (derivative, integral)
 - [ ] Basic geometry functions (distance, angle)
 - [ ] Basic trigonometry functions (sin, cos, tan)
+
+## Motivation
+
+We motivate the use of libraries/technologies through very basic benchmarks. The goal is to show the performance of the library/technology in a very basic way. Currently, we benchmark:
+- [numpy vs numba vs highway (simd cpp library)](motivation/numpy_motivation)
