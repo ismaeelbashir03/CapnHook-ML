@@ -3,21 +3,34 @@
 Optimised math library for CapnHook repository.
 
 ## Features
-- [x] numpy ndarray support
+- [x] numpy ndarray support:
+    - [-] specify axis for all operations
+    - [ ] Float8
+    - [ ] Float16
+    - [x] Float32
+    - [x] Float64
+    - [ ] Int8
+    - [ ] Int16
+    - [ ] Int32
+    - [ ] Int64
+    
 - [x] numpy like API with:
     - [x] elementwise operations
     - [x] broadcasting
     - [x] reduction operations
     - [x] linear algebra operations
      
-- [ ] common statistics operations:
-    - [ ] mean
-    - [ ] median
-    - [ ] mode
-    - [ ] variance
-    - [ ] standard deviation
-    - [ ] covariance
-    - [ ] correlation
+- [-] common statistics operations:
+    - [x] mean
+    - [x] median
+    - [x] histogram (with bins)
+    - [x] mode
+    - [x] variance
+    - [x] standard deviation
+    - [x] covariance
+    - [x] covariance matrix
+    - [x] correlation
+    - [x] correlation matrix
           
 - [-] common DL operations:
     - [x] matrix multiplication
