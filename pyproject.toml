@@ -2,6 +2,10 @@
 requires = ["setuptools>=61.0", "wheel", "conan>=1.65.0", "nanobind"]
 build-backend = "setuptools.build_meta"
 
+[tool.cibuildwheel]
+skip = ["pp*"]
+test-command = "python -c 'import capnhook_ml; print(capnhook_ml.__version__)'"
+
 [project]
 name = "capnhook-ml"
 version = "0.1.1"
