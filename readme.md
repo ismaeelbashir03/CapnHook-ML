@@ -86,7 +86,10 @@ pip install numpy conan nanobind pytest build twine delocate
 ```
 4. **Install the package in editable mode:**
 ```bash
-pip install -e .
+pip setup.py install
+pip install conan
+pip install nanobind
+python -m build
 ```
 
 ### Build and Testing
@@ -96,8 +99,9 @@ pytest tests/
 ```
 2. **Build the package locally:**
 ```bash
-conan install . --build=missing
+conan install . --build=missing # for non windows
 python -m build
+pip install dist/*.whl # replace star with wheel name
 ```
 
 3. **Build and Upload to PyPI (For Admins):**

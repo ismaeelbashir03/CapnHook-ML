@@ -7,5 +7,7 @@ CMakeToolchain
 CMakeDeps
 
 [options]
-openblas/*:shared=True
+openblas/*:shared=False    
 openblas/*:build_lapack=True
+highway/*:shared=False
+*:compiler.runtime=MT

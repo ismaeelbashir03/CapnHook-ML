@@ -1,6 +1,7 @@
 import os
 import pathlib
 import subprocess
+import platform, shutil, subprocess, pathlib
 from setuptools import setup, find_packages, Extension
 from setuptools.command.build_ext import build_ext as build_ext_orig
 
@@ -13,7 +14,13 @@ class build_ext(build_ext_orig):
     def run(self):
         for ext in self.extensions:
             self.build_cmake(ext)
-        super().run()
+        if platform.system() != "Windows":
+            super().run()
+
+    def build_extension(self, ext):        # skip MSVC’s empty‑objects link
+        if platform.system() == "Windows":
+            return
+        return super().build_extension(ext)
 
     def build_cmake(self, ext):
         root = pathlib.Path(ext.sourcedir).resolve()     
@@ -26,7 +33,7 @@ class build_ext(build_ext_orig):
         cfg = "Debug" if self.debug else "Release"
 
         print("\n▶ Conan install …")
-        self.spawn([
+        subprocess.check_call([
             "conan", "install", str(root),
             "--output-folder", str(build_dir),
             "--build=missing", "--profile=default"
@@ -41,15 +48,23 @@ class build_ext(build_ext_orig):
             "-B", str(build_dir),
             f"-DCMAKE_TOOLCHAIN_FILE={toolchain}",
             f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir.parent}",
+            f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{cfg.upper()}={extdir.parent}",
             "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
             f"-DCMAKE_BUILD_TYPE={cfg}",
         ]
-        self.spawn(cmake_cfg)
+        subprocess.check_call(cmake_cfg)
+
+        if platform.system() == "Windows":
+            if not (build_dir / "CMakeCache.txt").exists():
+                # honour an env override, else default to VS 2022
+                gen = os.getenv("CMAKE_GENERATOR", "Visual Studio 17 2022")
+                cmake_cfg += ["-G", gen, "-A", "x64"]     # arch explicit
+        subprocess.check_call(cmake_cfg)
 
         print("▶ CMake build …")
         if not self.dry_run:
-            self.spawn(["cmake", "--build", str(build_dir), "--config", cfg])
-
+            subprocess.check_call(["cmake", "--build", str(build_dir),
+                               "--config", cfg])
 
 setup(
     name='capnhook_ml',
