@@ -37,6 +37,18 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE nanobind_ROOT)
 find_package(nanobind CONFIG REQUIRED)
 
+if(APPLE)
+    if(CMAKE_OSX_ARCHITECTURES)
+        message(STATUS "Building for architectures: ${CMAKE_OSX_ARCHITECTURES}")
+    else()
+        message(STATUS "Building for host architecture")
+    endif()
+elseif(WIN32)
+    add_definitions(-D_USE_MATH_DEFINES)
+elseif(UNIX AND NOT APPLE)
+    add_compile_options(-fPIC)
+endif()
+
 # nanobind_add_module(capnhook_ml
 #     src/capnhook_ml.cpp
 # )
