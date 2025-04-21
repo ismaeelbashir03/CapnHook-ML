@@ -11,29 +11,29 @@ Optimised math library for CapnHook repository.
     - [x] linear algebra operations
      
 - [ ] common statistics operations:
-    - [ ] mean
-    - [ ] median
-    - [ ] mode
-    - [ ] variance
-    - [ ] standard deviation
-    - [ ] covariance
-    - [ ] correlation
+    - [ ] Mean
+    - [ ] Median
+    - [ ] Mode
+    - [ ] Variance
+    - [ ] Standard Deviation
+    - [ ] Covariance
+    - [ ] Correlation
           
 - [-] common DL operations:
-    - [x] matrix multiplication
+    - [x] Matrix Multiplication
     - [ ] Forward Pass
-    - [ ] convolution
-    - [ ] pooling
-    - [ ] activation functions
-    - [ ] loss functions
-    - [ ] optimizers
+    - [ ] Convolution
+    - [ ] Pooling
+    - [ ] Activation Functions
+    - [ ] Loss Functions
+    - [ ] Optimisers
 
 - [ ] ML functions:
     - [ ] PCA
     - [ ] SVD
     - [ ] SVM
     - [ ] Linear Regression (with L1 and L2 reg)
-    - [ ] Logisitc Regression
+    - [ ] Logistic Regression
     - [ ] KNN
     - [ ] KMeans
     - [ ] Linear Kernel
@@ -42,16 +42,16 @@ Optimised math library for CapnHook repository.
     - [ ] Periodic Kernel
     - [ ] Naive Bayes
     - [ ] Gaussian Process
-    - [ ] Baysian Nueral Network
+    - [ ] Bayesian Neural Network
     - [ ] Gaussian Classifier
     - [ ] Bayesian Optimisation
-    - [ ] Baysian Linear/Logistic Regression
+    - [ ] Bayesian Linear/Logistic Regression
     - [ ] Gaussian Mixture Model
     - [ ] Kolmagrove-Arnold Network (plus phi functions)
     - [ ] Decision Trees (Random Forest, Gradient boosting)
     - [ ] Attention Module
     - [ ] Laplace Approximation
-    - [ ] Monte Carlo, Importance Sampling, KL Divergance
+    - [ ] Monte Carlo, Importance Sampling, KL Divergence
 
 ## Motivation
 
