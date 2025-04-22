@@ -34,9 +34,11 @@ jobs:
     # === Conan + CMake steps ===
 
     - name: Detect default Conan profile
+      shell: bash
       run: conan profile detect --force
 
     - name: Install Conan dependencies
+      shell: bash
       run: |
         mkdir build
         conan install . \
