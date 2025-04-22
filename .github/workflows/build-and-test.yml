@@ -20,19 +20,20 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: Create virtual environment
+      run: python -m venv .venv
+
+    - name: Activate virtual environment
+      run: .venv/Scripts/activate
+
     - name: Install Python dependencies
       run: python -m pip install numpy conan nanobind pytest build twine delocate
 
     - name: Install Conan dependencies
       run: conan profile detect --force
       
-    - name: Install Conan dependencies (non-Windows)
-      if: matrix.os != 'windows-latest'
-      run: conan install . --build=missing --profile:build=default --profile:host=default
-
-    - name: Install Conan dependencies (Windows)
-      if: matrix.os == 'windows-latest'
-      run: conan install .
+    - name: Install Conan dependencies
+      run: conan install . --build=missing --profile:build=default --profile:host=default -of build
 
     - name: Build package
       run: python -m build
@@ -45,5 +46,10 @@ jobs:
       if: matrix.os == 'windows-latest'
       run: pip install (Get-ChildItem dist\*.whl).FullName
 
-    - name: Run tests
-      run: pytest tests/
+    - name: Run tests (Linux/macOS)
+      if: matrix.os != 'windows-latest'
+      run: python -m pytest ./tests
+
+    - name: Run tests (Windows)
+      if: matrix.os == 'windows-latest'
+      run: python -m pytest .\tests\
