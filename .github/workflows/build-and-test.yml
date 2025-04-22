@@ -29,7 +29,18 @@ jobs:
       - name: Build & package (isolated)
         run: python -m build -w -o dist/
 
-      - name: Install & test
-        run: |
-          pip install dist/*.whl
-          python -m pytest ./tests
+      - name: Install package (Linux/macOS)
+        if: matrix.os != 'windows-2022'
+        run: pip install dist/*.whl
+
+      - name: Install package (Windows)
+        if: matrix.os == 'windows-2022'
+        run: pip install (Get-ChildItem dist\*.whl).FullName
+
+      - name: Run tests (Linux/macOS)
+        if: matrix.os != 'windows-2022'
+        run: python -m pytest ./tests
+
+      - name: Run tests (Windows)
+        if: matrix.os == 'windows-2022'
+        run: python -m pytest .\tests\
