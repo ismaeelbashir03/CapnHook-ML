@@ -1,6 +1,6 @@
 name: Cross Platform and Unit Tests
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   tests:
@@ -11,37 +11,71 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       PYTHONUTF8: "1"
-    
+
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-      
-      - name: Installing Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install numpy conan nanobind pytest build twine delocate
+    - uses: actions/checkout@v2
 
-      - name: Build wheel
-        run: python -m build
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
 
-      - name: Fix macOS wheel with delocate
-        if: runner.os == 'macOS'
-        run: |
-          mkdir -p fixed_wheels
-          delocate-wheel -w fixed_wheels -v dist/*.whl
-          delocate-listdeps fixed_wheels/*.whl
-          delocate-repair fixed_wheels/*.whl
+    - name: Install system deps (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew update
+        brew install cmake
 
-      - name: Install built wheel
-        run: |
-          if [ "${{ runner.os }}" = "macOS" ]; then
-            pip install fixed_wheels/*.whl
-          else
-            pip install dist/*.whl
-          fi
+    - name: Install Python deps
+      run: |
+        python -m pip install --upgrade pip
+        pip install numpy pytest build twine delocate conan
 
-      - name: Running Tests
-        run:  pytest tests/
+    # === Conan + CMake steps ===
+
+    - name: Detect default Conan profile
+      run: conan profile detect --force
+
+    - name: Install Conan dependencies
+      run: |
+        mkdir build
+        conan install . \
+          --output-folder=build \
+          --build=missing \
+          -g CMakeToolchain \
+          -g CMakeDeps
+
+    - name: Configure native code with CMake
+      shell: bash
+      run: |
+        cmake -S . -B build \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_TOOLCHAIN_FILE=build/conan_toolchain.cmake
+
+    - name: Build native code
+      shell: bash
+      run: cmake --build build --config Release
+
+    # === Python wheel + delocate ===
+
+    - name: Build Python wheel
+      run: python -m build
+
+    - name: Fix macOS wheel with delocate
+      if: runner.os == 'macOS'
+      run: |
+        mkdir -p fixed_wheels
+        delocate-wheel -w fixed_wheels -v dist/*.whl
+        delocate-listdeps fixed_wheels/*.whl
+        delocate-repair fixed_wheels/*.whl
+
+    - name: Install built wheel
+      run: |
+        if [ "${{ runner.os }}" = "macOS" ]; then
+          pip install fixed_wheels/*.whl
+        else
+          pip install dist/*.whl
+        fi
+
+    - name: Run tests
+      run: pytest tests/
