@@ -6,7 +6,7 @@ jobs:
   tests:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: [3.12]
     runs-on: ${{ matrix.os }}
     env:
@@ -20,64 +20,27 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install system deps (macOS)
-      if: runner.os == 'macOS'
-      run: |
-        brew update
-        brew install cmake
+    - name: Install Python dependencies
+      run: python -m pip install numpy conan nanobind pytest build twine delocate
 
-    - name: Install Python deps
-      run: |
-        python -m pip install --upgrade pip
-        pip install numpy pytest build twine delocate conan
+    - name: Install Conan dependencies (non-Windows)
+      if: matrix.os != 'windows-latest'
+      run: conan install . --build=missing
 
-    # === Conan + CMake steps ===
+    - name: Install Conan dependencies (Windows)
+      if: matrix.os == 'windows-latest'
+      run: conan install .
 
-    - name: Detect default Conan profile
-      shell: bash
-      run: conan profile detect --force
-
-    - name: Install Conan dependencies
-      shell: bash
-      run: |
-        mkdir build
-        conan install . \
-          --output-folder=build \
-          --build=missing \
-          -g CMakeToolchain \
-          -g CMakeDeps
-
-    - name: Configure native code with CMake
-      shell: bash
-      run: |
-        cmake -S . -B build \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DCMAKE_TOOLCHAIN_FILE=build/conan_toolchain.cmake
-
-    - name: Build native code
-      shell: bash
-      run: cmake --build build --config Release
-
-    # === Python wheel + delocate ===
-
-    - name: Build Python wheel
+    - name: Build package
       run: python -m build
 
-    - name: Fix macOS wheel with delocate
-      if: runner.os == 'macOS'
-      run: |
-        mkdir -p fixed_wheels
-        delocate-wheel -w fixed_wheels -v dist/*.whl
-        delocate-listdeps fixed_wheels/*.whl
-        delocate-repair fixed_wheels/*.whl
+    - name: Install package (Linux/macOS)
+      if: matrix.os != 'windows-latest'
+      run: pip install dist/*.whl
 
-    - name: Install built wheel
-      run: |
-        if [ "${{ runner.os }}" = "macOS" ]; then
-          pip install fixed_wheels/*.whl
-        else
-          pip install dist/*.whl
-        fi
+    - name: Install package (Windows)
+      if: matrix.os == 'windows-latest'
+      run: pip install (Get-ChildItem dist\*.whl).FullName
 
     - name: Run tests
       run: pytest tests/
