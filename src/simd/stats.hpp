@@ -3,13 +3,13 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
+#include <random>
 #include <hwy/contrib/sort/order.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <hwy/highway.h>
 #include <hwy/contrib/sort/vqsort.h>
-#include <random>
-#include "hwy/contrib/sort/order.h"
+#include <hwy/contrib/sort/order.h>
 
 namespace nb = nanobind;
 
@@ -77,10 +77,11 @@ T median(nb::ndarray<T, nb::c_contig> a) {
     if (N == 0) throw std::runtime_error("median: array must not be empty");
     if (N == 1) return A[0];
 
+    // FIXME: fix linker error 'hwy::VQSort(double*, unsigned long, hwy::SortAscending)"'
     // for tiny arrays (less than SIMD width), we can put them in registers and sort (no branches/memory)
-    if (N < L) return inRegisterMedian(A, N);
-    // VQSort works best for sizes to ~64 (https://github.com/google/highway/blob/master/hwy/contrib/sort/README.md?utm_source=chatgpt.com)
-    if (N <= 64) return medianVQSort_<T>(A, N);
+    // if (N < L) return inRegisterMedian(A, N);
+    // // VQSort works best for sizes to ~64 (https://github.com/google/highway/blob/master/hwy/contrib/sort/README.md?utm_source=chatgpt.com)
+    // if (N <= 64) return medianVQSort_<T>(A, N);
 
     // for larger arrays we do SIMD pivot search
     std::uniform_int_distribution<size_t> dist(0, N - 1);
@@ -140,6 +141,9 @@ void histogram(nb::ndarray<T, nb::c_contig> a, nb::ndarray<T, nb::c_contig> valu
         bin_vecs[b] = Set(ScalableTag<T>(), bins[b]);
     }
 
+    // byte buffer of size 8 for StoreMaskBits (BitsFromMask depricated)
+    uint8_t bits_buf[(((64 + 7)/8) )];
+
     std::vector<size_t> local_cnt(M, 0);
 
     const auto d = ScalableTag<T>();
@@ -151,9 +155,9 @@ void histogram(nb::ndarray<T, nb::c_contig> a, nb::ndarray<T, nb::c_contig> valu
 
         for (size_t b = 0; b < M; ++b) {
         // mask the equal bins, extract bits, popcount
-        auto m    = Eq(v, bin_vecs[b]);    
-        uint64_t mask = MaskToBits(m);
-        local_cnt[b] += __builtin_popcountll(mask);
+        auto m = Eq(v, bin_vecs[b]);    
+        uint64_t bits = StoreMaskBits(d, m, bits_buf);
+        local_cnt[b] += __builtin_popcountll(bits);
         }
     }
 
@@ -198,30 +202,44 @@ T mode(nb::ndarray<T, nb::c_contig> a) {
     std::vector<T> bins(N);
     std::vector<size_t> counts(N);
     histogram(a, nb::ndarray<T, nb::c_contig>(bins.data(), {N}), nb::ndarray<size_t, nb::c_contig>(counts.data(), {N}));
-    
-    int i = 0;
-    T mode = bins[0];
-    size_t max_count = counts[0];
-    for (; i + L <= N; i += L) {
-        const auto v = Load(d, A + i);
-        const auto m = Load(d, counts.data() + i);
-        auto mask = Gt(m, Set(d, max_count));
-        uint64_t mask_bits = MaskToBits(mask);
-        if (mask_bits) {
-            // get the index of the first set bit
-            size_t index = __builtin_ctzll(mask_bits);
-            max_count = counts[index];
-            mode = bins[index];
-        }
-    }
-    // remaining elements
-    for (; i < N; ++i) {
+
+    /*
+    size_t not supported in SIMD, so we need to use a scalar loop TODO: look into converting to int (but could have integer overflow :( )
+    */
+    // const ScalableTag<size_t> d_size_t_;
+    // int i = 0;
+    // T mode = bins[0];
+    // size_t max_count = counts[0];
+    // for (; i + L <= N; i += L) {
+    //     const auto v = Load(d, A + i);
+    //     const auto m = Load(d, counts.data() + i);
+    //     auto mask = Gt(m, Set(d, max_count));
+    //     uint64_t mask_bits = BitsFromMask(d, mask);
+    //     if (mask_bits) {
+    //         // get the index of the first set bit
+    //         size_t index = __builtin_ctzll(mask_bits);
+    //         max_count = counts[index];
+    //         mode = bins[index];
+    //     }
+    // }
+    // // remaining elements
+    // for (; i < N; ++i) {
+    //     if (counts[i] > max_count) {
+    //         max_count = counts[i];
+    //         mode = bins[i];
+    //     }
+    // }
+    // return mode;
+
+    size_t max_count = 0;
+    T mode_value = bins[0];
+    for (size_t i = 0; i < N; ++i) {
         if (counts[i] > max_count) {
             max_count = counts[i];
-            mode = bins[i];
+            mode_value = bins[i];
         }
     }
-    return mode;
+    return mode_value;
 }
 
 template<typename T>
