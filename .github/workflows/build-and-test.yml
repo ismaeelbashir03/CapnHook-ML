@@ -20,16 +20,21 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Create virtual environment
+    - name: Create virtual environment (Linux/macOS)
+      if: matrix.os != 'windows-latest'
       run: python -m venv .venv
 
     - name: Activate virtual environment (Linux/macOS)
       if: matrix.os != 'windows-latest'
       run: source .venv/bin/activate
 
+    - name: Create virtual environment (Windows)
+      if: matrix.os == 'windows-latest'
+      run: python -m venv venv
+    
     - name: Activate virtual environment (Windows)
       if: matrix.os == 'windows-latest'
-      run: .\.venv\bin\activate
+      run: .\venv\Scripts\activate
 
     - name: Install Python dependencies
       run: python -m pip install numpy conan nanobind pytest build twine delocate
