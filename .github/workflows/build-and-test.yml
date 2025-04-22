@@ -46,7 +46,7 @@ jobs:
       run: conan install . --build=missing --profile:build=default --profile:host=default -of build
 
     - name: Build package
-      run: python -m build
+      run: python -m build --no-build-isolation
 
     - name: Install package (Linux/macOS)
       if: matrix.os != 'windows-latest'
