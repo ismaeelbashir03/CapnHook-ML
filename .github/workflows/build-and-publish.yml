@@ -32,7 +32,7 @@ jobs:
         shell: bash
         run: |
             # default if none exists
-            conan profile new default --detect --force
+            conan profile detect --force
             conan install . \
               --output-folder=build \
               --build=missing \
