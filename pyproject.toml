@@ -1,6 +1,13 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel", "conan>=1.65.0", "nanobind"]
-build-backend = "setuptools.build_meta"
+requires = ["scikit-build-core-conan >=0.6.0", "nanobind"]
+build-backend = "scikit_build_core_conan.build"
+
+[tool.scikit-build-core-conan]
+path = "."
+build = "missing"
+profile = "default"
+generator = "Ninja"
+output-folder = "build"
 
 [tool.cibuildwheel]
 skip = ["pp*"]
