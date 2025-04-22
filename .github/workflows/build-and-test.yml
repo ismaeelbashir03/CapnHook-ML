@@ -21,19 +21,19 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Create virtual environment (Linux/macOS)
-      if: matrix.os != 'windows-latest'
+      if: matrix.os != 'windows-2022'
       run: python -m venv .venv
 
     - name: Activate virtual environment (Linux/macOS)
-      if: matrix.os != 'windows-latest'
+      if: matrix.os != 'windows-2022'
       run: source .venv/bin/activate
 
     - name: Create virtual environment (Windows)
-      if: matrix.os == 'windows-latest'
+      if: matrix.os == 'windows-2022'
       run: python -m venv venv
     
     - name: Activate virtual environment (Windows)
-      if: matrix.os == 'windows-latest'
+      if: matrix.os == 'windows-2022'
       run: .\venv\Scripts\activate
 
     - name: Install Python dependencies
@@ -49,17 +49,17 @@ jobs:
       run: python -m build --no-isolation
 
     - name: Install package (Linux/macOS)
-      if: matrix.os != 'windows-latest'
+      if: matrix.os != 'windows-2022'
       run: pip install dist/*.whl
 
     - name: Install package (Windows)
-      if: matrix.os == 'windows-latest'
+      if: matrix.os == 'windows-2022'
       run: pip install (Get-ChildItem dist\*.whl).FullName
 
     - name: Run tests (Linux/macOS)
-      if: matrix.os != 'windows-latest'
+      if: matrix.os != 'windows-2022'
       run: python -m pytest ./tests
 
     - name: Run tests (Windows)
-      if: matrix.os == 'windows-latest'
+      if: matrix.os == 'windows-2022'
       run: python -m pytest .\tests\
