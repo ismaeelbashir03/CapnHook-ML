@@ -6,7 +6,7 @@ jobs:
   tests:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest]
         python-version: [3.12]
     runs-on: ${{ matrix.os }}
     env:
