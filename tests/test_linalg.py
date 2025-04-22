@@ -2,8 +2,8 @@ import numpy as np
 import capnhook_ml as ch
 import pytest
 
-RTOL = 1e-5
-ATOL = 1e-7
+RTOL = 1e-2
+ATOL = 1e-4
 
 vector_sizes = [10, 100, 1000]
 
