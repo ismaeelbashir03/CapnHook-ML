@@ -39,18 +39,27 @@ jobs:
     - name: Install Python dependencies
       run: python -m pip install numpy conan nanobind pytest build twine delocate setuptools wheel
 
-    - name: Install Conan dependencies
-      run: conan profile detect --force
-      
-    - name: Install Conan dependencies
-      run: conan install eigen/3.4.0@ --build=missing --profile:build=default --profile:host=default -of build
+    - name: Install Conan Dependencies (Linux/macOS)
+      if: matrix.os != 'windows-latest'
+      run: |
+        pip install conan
+        conan profile detect --force
+        conan install eigen/3.4.0@ --build=missing
 
-    - name: Configure CMake
+    - name: Configure CMake (Linux/macOS)
       run: |
         cmake -S . -B build \
           -DCMAKE_BUILD_TYPE=Release \
           -DEigen3_DIR=$(conan info eigen/3.4.0@ --paths | grep 'package_folder' | cut -d: -f2) \
           -DNB_TEST_STABLE_ABI=ON
+
+    - name: Install Conan dependencies (windows)
+      if: matrix.os == 'windows-latest'
+      run: conan profile detect --force
+      
+    - name: Install Conan dependencies (windows)
+      if: matrix.os == 'windows-latest'
+      run: conan install . --build=missing --profile:build=default --profile:host=default -of build
 
     - name: Build package
       run: python -m build --no-isolation
