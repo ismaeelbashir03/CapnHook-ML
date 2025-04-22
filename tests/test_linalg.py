@@ -103,7 +103,6 @@ def test_matmul_non_square(non_square_matrices):
         try:
             np_result = a @ b  # This should be valid as shapes are compatible
             ch_result = ch.matmul(a, b)
-            #print(np_result[:10,10], ch_result[:10,10]) to see the difference in failing test
             assert np.allclose(np_result, ch_result, rtol=RTOL, atol=ATOL)
             assert np_result.dtype == ch_result.dtype
             assert np_result.shape == ch_result.shape
