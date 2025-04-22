@@ -26,6 +26,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest build twine delocate
 
+      - name: Install Conan dependencies
+        run: conan profile detect --force
+
       - name: Build & package (isolated)
         run: python -m build -w -o dist/
 
