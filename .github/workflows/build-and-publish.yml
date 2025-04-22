@@ -17,11 +17,29 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       
-      - name: Installing pytest
+      - name: Install system dependencies
+        if: runner.os == 'macOS'
+        run: |
+          brew update
+          brew install cmake
+      
+      - name: Installing Python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install numpy conan nanobind pytest build twine delocate
-          python -m build
+
+      - name: Configure and install Conan dependencies
+        shell: bash
+        run: |
+            # default if none exists
+            conan profile new default --detect --force
+            conan install . \
+              --output-folder=build \
+              --build=missing \
+              --profile=default 
+
+      - name: Build wheel
+        run: python -m build
 
       - name: Install built wheel
         shell: bash
