@@ -5,7 +5,7 @@ set(CMAKE_CXX_COMPILER "clang++")
 
 project(capnhook_ml LANGUAGES CXX)
 
-include(${CMAKE_BINARY_DIR}/conan_toolchain.cmake)
+# include(${CMAKE_BINARY_DIR}/conan_toolchain.cmake)
 
 # include(FetchContent)
 # FetchContent_Declare(

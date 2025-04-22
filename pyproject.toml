@@ -12,7 +12,6 @@ options = [
   "*:compiler.runtime=MT"
 ]
 settings = []
-generator = "Ninja"
 output-folder = "build"
 
 
