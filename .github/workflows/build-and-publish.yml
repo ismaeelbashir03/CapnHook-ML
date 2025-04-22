@@ -1,6 +1,6 @@
 name: Cross Platform and Unit Tests
 
-on: [pull_request, push]
+on: [push]
 
 jobs:
   tests:
@@ -19,33 +19,29 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       
-      - name: Install system dependencies
-        if: runner.os == 'macOS'
-        run: |
-          brew update
-          brew install cmake
-      
       - name: Installing Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install numpy conan nanobind pytest build twine delocate
-
-      - name: Configure and install Conan dependencies
-        shell: bash
-        run: |
-            # default if none exists
-            conan profile detect --force
-            conan install . \
-              --output-folder=build \
-              --build=missing \
-              --profile=default 
+          python -m pip install numpy conan nanobind pytest build twine delocate
 
       - name: Build wheel
         run: python -m build
 
+      - name: Fix macOS wheel with delocate
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p fixed_wheels
+          delocate-wheel -w fixed_wheels -v dist/*.whl
+          delocate-listdeps fixed_wheels/*.whl
+          delocate-repair fixed_wheels/*.whl
+
       - name: Install built wheel
-        shell: bash
-        run: pip install dist/*.whl
+        run: |
+          if [ "${{ runner.os }}" = "macOS" ]; then
+            pip install fixed_wheels/*.whl
+          else
+            pip install dist/*.whl
+          fi
 
       - name: Running Tests
         run:  pytest tests/
