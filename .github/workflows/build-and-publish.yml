@@ -25,7 +25,8 @@ jobs:
 
     - name: Install Conan dependencies (non-Windows)
       if: matrix.os != 'windows-latest'
-      run: conan install . --build=missing
+      run: conan profile detect --force 
+        conan install . --build=missing --profile:build=default --profile:host=default
 
     - name: Install Conan dependencies (Windows)
       if: matrix.os == 'windows-latest'
