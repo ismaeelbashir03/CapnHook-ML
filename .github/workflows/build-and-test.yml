@@ -43,7 +43,14 @@ jobs:
       run: conan profile detect --force
       
     - name: Install Conan dependencies
-      run: conan install . --build=missing --profile:build=default --profile:host=default -of build
+      run: conan install eigen/3.4.0@ --build=missing --profile:build=default --profile:host=default -of build
+
+    - name: Configure CMake
+      run: |
+        cmake -S . -B build \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DEigen3_DIR=$(conan info eigen/3.4.0@ --paths | grep 'package_folder' | cut -d: -f2) \
+          -DNB_TEST_STABLE_ABI=ON
 
     - name: Build package
       run: python -m build --no-isolation
