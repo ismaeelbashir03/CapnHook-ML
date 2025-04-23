@@ -29,8 +29,13 @@ jobs:
       - name: Build & package (isolated)
         run: python -m build -w -o dist/
 
-      - name: Repair wheels (cross-platform)
-        run: repairwheel -o dist dist
+      - name: Repair wheels (Linux/macOS)
+        if: matrix.os != 'windows-latest'
+        run: repairwheel -o dist/ dist/*.whl
+
+      - name: Repair wheels (Windows)
+        if: matrix.os == 'windows-latest'
+        run: repairwheel -o .\dist\ (Get-ChildItem dist\*.whl).FullName
 
       - name: Install package (Linux/macOS)
         if: matrix.os != 'windows-latest'
