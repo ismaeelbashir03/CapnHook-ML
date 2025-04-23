@@ -1,4 +1,4 @@
-name: Publish Python Package
+name: Cross-Platform CD 
 
 on:
   push:
@@ -25,7 +25,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install bump2version build twine repairwheel
+          pip install bump2version build twine
 
       - name: Bump version (patch)
         id: bump
@@ -41,14 +41,6 @@ jobs:
       - name: Build distribution
         run: |
           python -m build -w -o dist/
-
-      - name: Repair wheels (Linux/macOS)
-        if: matrix.os != 'windows-latest'
-        run: repairwheel -o dist/ dist/*.whl
-
-      - name: Repair wheels (Windows)
-        if: matrix.os == 'windows-latest'
-        run: repairwheel -o .\dist\ (Get-ChildItem dist\*.whl).FullName
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
