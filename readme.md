@@ -87,7 +87,7 @@ pip install numpy pytest build repairwheel twine
 4. **Build and Install the package locally:**
 ```bash
 python -m build -w -o dist/
-repairwheel repair --wheel-dir dist --output-dir dist
+repairwheel -o dist dist
 
 # for windows: python -m pip install (Get-ChildItem dist\*.whl).FullName
 pip install dist/*.whl
