@@ -1,6 +1,24 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel", "conan>=1.65.0", "nanobind"]
-build-backend = "setuptools.build_meta"
+requires = ["scikit-build-core-conan >=0.6.0", "nanobind", "numpy"]
+build-backend = "scikit_build_core_conan.build"
+
+[tool.scikit-build-core-conan]
+path = "."
+build = "missing"
+options = [
+  "openblas/*:shared=False",
+  "openblas/*:build_lapack=True",
+  "highway/*:shared=False",
+  "*:compiler.runtime=MT"
+]
+settings = []
+output-folder = "build"
+
+[tool.scikit-build]
+wheel.packages = [
+  "capnhook_ml",
+  "capnhook_ml.simd"
+]
 
 [tool.cibuildwheel]
 skip = ["pp*"]
