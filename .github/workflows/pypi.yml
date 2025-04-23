@@ -1,4 +1,4 @@
-name: Publish Python Package
+name: Cross-Platform  CD
 
 on:
   push:
@@ -37,9 +37,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git push origin main
+
       - name: Build distribution
         run: |
-          python -m build
+          python -m build -w -o dist/
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
