@@ -7,7 +7,11 @@ on:
 
 jobs:
   release:
-    runs-on: ubuntu-latest, windows-latest, macos-latest
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     permissions:
       contents: write    
       packages: write    
@@ -30,7 +34,7 @@ jobs:
       - name: Bump version (patch)
         id: bump
         run: |
-          bump2version patch --allow-dirty --commit
+          bump2version patch --allow-dirty --commit --message "[skip ci] Bump version: {current_version} → {new_version}"
 
       - name: Push version bump to repository
         run: |
