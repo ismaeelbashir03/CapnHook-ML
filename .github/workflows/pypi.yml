@@ -30,7 +30,7 @@ jobs:
       - name: Bump version (patch)
         id: bump
         run: |
-          bump2version patch --allow-dirty --commit
+          bump2version patch --allow-dirty --commit --message "[skip ci] Bump version: {current_version} → {new_version}"
 
       - name: Push version bump to repository
         run: |
