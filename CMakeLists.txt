@@ -5,6 +5,7 @@ set(CMAKE_CXX_COMPILER "clang++")
 
 project(capnhook_ml LANGUAGES CXX)
 
+include(GNUInstallDirs) 
 # include(${CMAKE_BINARY_DIR}/conan_toolchain.cmake)
 
 # include(FetchContent)
@@ -89,5 +90,17 @@ if(APPLE)
         target_link_libraries(capnhook_ml PRIVATE ${LAPACKE_LIBRARY})
     endif()
 endif()
+
+
+install(TARGETS capnhook_ml
+    RUNTIME     DESTINATION .  # .pyd on Windows
+    LIBRARY     DESTINATION .  # .so/.dylib on Unix
+    ARCHIVE     DESTINATION .
+)
+
+install(DIRECTORY src/simd
+    DESTINATION ./simd
+    FILES_MATCHING PATTERN "*.hpp"
+)
 
 add_compile_definitions(NO_LAPACKE)

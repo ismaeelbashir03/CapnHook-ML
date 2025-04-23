@@ -26,6 +26,8 @@ dist/
 venv
 *.lock
 .pytest_cache
+*.dist-info
+lib/
 
 # macOS
 .DS_Store
