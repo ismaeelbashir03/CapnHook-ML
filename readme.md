@@ -82,59 +82,23 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 3. **Install dependencies:**
 ```bash
-pip install numpy conan nanobind pytest build twine delocate
+pip install numpy pytest build repairwheel twine
 ```
-4. **Install the package in editable mode:**
+4. **Build and Install the package locally:**
 ```bash
-pip setup.py install
-pip install conan
-pip install nanobind
-python -m build
+python -m build -w -o dist/
+repairwheel repair --wheel-dir dist --output-dir dist
+
+# for windows: python -m pip install (Get-ChildItem dist\*.whl).FullName
+pip install dist/*.whl
 ```
 
-### Build and Testing
+### Testing
 1. **Run tests:**
 ```bash
-pytest tests/
+# for windows: python -m pytest .\tests\
+python -m pytest ./tests
 ```
-2. **Build the package locally:**
-```bash
-conan install . --build=missing # for non windows
-python -m build
-pip install dist/*.whl # replace star with wheel name
-```
-
-3. **Build and Upload to PyPI (For Admins):**
-Update the version in `pyproject.toml` and run:
-```bash
-python -m build
-```
-
-For MacOS, we need to package the dylibs with the wheel. To do this, we need to run:
-```bash
-pip install delocate
-delocate-wheel -w fixed_wheels -v dist/*.whl
-delocate-listdeps fixed_wheels/*.whl
-delocate-repair fixed_wheels/*.whl
-```
-
-Then, we can upload the wheel to PyPI:
-```bash
-twine upload -r testpypi fixed_wheels/*.whl dist/*.tar.gz
-twine upload fixed_wheels/*.whl dist/*.tar.gz
-```
-
-### Building for Different Platforms
-For cross-platform builds, we use GitHub Actions to create wheels for various platforms and architectures.
-
-1. **Local universal2 macos build (arm64 and x86_64):**
-```bash 
-ARCHFLAGS="-arch arm64 -arch x86_64" python -m build --wheel
-delocate-wheel -w fixed_wheels -v dist/*.whl
-```
-
-2. **For all platforms:**
-   - Use GitHub Actions to build wheels for all platforms. The workflow is defined in `.github/workflows/build-and-publish.yml`.
 
 ### Guidelines for Contributing
 - Follow the project's coding style (PEP 8 for Python, Google style for C++) (currently not enforced, but moving towards this).

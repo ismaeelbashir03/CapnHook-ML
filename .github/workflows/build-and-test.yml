@@ -30,7 +30,7 @@ jobs:
         run: python -m build -w -o dist/
 
       - name: Repair wheels (cross-platform)
-        run: repairwheel repair --wheel-dir dist --out-dir dist
+        run: repairwheel repair --wheel-dir dist --output-dir dist
 
       - name: Install package (Linux/macOS)
         if: matrix.os != 'windows-latest'
