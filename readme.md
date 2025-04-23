@@ -82,15 +82,11 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 3. **Install dependencies:**
 ```bash
-pip install numpy pytest build repairwheel twine
+pip install numpy pytest build
 ```
 4. **Build and Install the package locally:**
 ```bash
 python -m build -w -o dist/
-
-# for windows: repairwheel -o .\dist\ (Get-ChildItem dist\*.whl).FullName
-repairwheel -o dist/ dist/*.whl
-```
 
 # for windows: python -m pip install (Get-ChildItem dist\*.whl).FullName
 pip install dist/*.whl
