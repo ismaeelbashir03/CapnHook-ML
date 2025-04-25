@@ -75,7 +75,7 @@ inline T medianVQSelect_(T* A, size_t N) {
 }
 
 template <typename T>
-T median(nb::ndarray<T, nb::c_contig> a, bool rng = false) {
+T median(nb::ndarray<T, nb::c_contig> a) {
     T* A = a.data();
     const ScalableTag<T> d;
     const size_t L = Lanes(d);
