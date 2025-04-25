@@ -10,7 +10,7 @@ on:
 jobs:
   bump-version:
     name: Bump version and publish to PyPI
-    if: '!contains(github.event.head_commit.message, "Bump version")'
+    if: '!contains(github.event.head_commit.message, ''Bump version'')'
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
