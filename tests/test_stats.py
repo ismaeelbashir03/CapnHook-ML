@@ -6,7 +6,7 @@ RTOL = 1e-5
 ATOL = 1e-7
 
 # Generate a variety of test arrays
-sizes = [1] # , 10, 100, 1000
+sizes = [1, 10, 100, 1000]
 
 
 @pytest.fixture(params=sizes)

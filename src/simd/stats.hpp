@@ -78,25 +78,19 @@ inline T medianVQSelect_(T* A, size_t N) {
 template <typename T>
 T median(nb::ndarray<T, nb::c_contig> a) {
     T* A = a.data();
-    const ScalableTag<T> d;
-    const size_t L = Lanes(d);
-    size_t N = a.shape(0); // non const for reallocation in pivoting
-
-    if (N == 0) throw std::runtime_error("median: array must not be empty");
+    const size_t N = a.shape(0);
+    if (N == 0) throw std::runtime_error("median: empty array");
     if (N == 1) return A[0];
 
-    // for tiny arrays (less than SIMD width), we can just sort
-    if (N < L) {
-        std::vector<T> copy(A, A + N);
-        std::sort(copy.begin(), copy.end());
-        if (N % 2 == 0) {
-            return (copy[N / 2 - 1] + copy[N / 2]) / T(2);
-        } else {
-            return copy[N / 2];
-        }
-    }
-    // VQSort(using VQSelect) works best for sizes to 32-128 (https://github.com/google/highway/blob/master/hwy/contrib/sort/README.md?utm_source=chatgpt.com)
-    return medianVQSelect_<T>(A, N);
+    std::vector<T> buf(A, A + N);
+    const size_t mid = N / 2;
+
+    VQSelect(buf.data(), N, mid, hwy::SortAscending());
+    if (N & 1) return buf[mid];
+
+    const T hi = buf[mid];
+    const T lo = *std::max_element(buf.begin(), buf.begin() + mid);
+    return (lo + hi) / T(2);
 }
 
 template <typename T>
