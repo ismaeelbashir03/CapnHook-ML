@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
@@ -84,21 +85,14 @@ T median(nb::ndarray<T, nb::c_contig> a) {
     if (N == 0) throw std::runtime_error("median: array must not be empty");
     if (N == 1) return A[0];
 
-    // for tiny arrays (less than SIMD width), we can just do insertion sort
+    // for tiny arrays (less than SIMD width), we can just sort
     if (N < L) {
-        for (size_t i = 1; i < N; i++) {
-            T key = A[i];
-            ptrdiff_t j = static_cast<ptrdiff_t>(i) - 1;
-            while (j >= 0 && A[j] > key) {
-                A[j + 1] = A[j];
-                j--;
-            }
-            A[j + 1] = key;
-        }
+        std::vector<T> copy(A, A + N);
+        std::sort(copy.begin(), copy.end());
         if (N % 2 == 0) {
-            return (A[N / 2 - 1] + A[N / 2]) / T(2);
+            return (copy[N / 2 - 1] + copy[N / 2]) / T(2);
         } else {
-            return A[N / 2];
+            return copy[N / 2];
         }
     }
     // VQSort(using VQSelect) works best for sizes to 32-128 (https://github.com/google/highway/blob/master/hwy/contrib/sort/README.md?utm_source=chatgpt.com)
