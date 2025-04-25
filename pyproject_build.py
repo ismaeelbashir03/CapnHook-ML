@@ -7,6 +7,4 @@ def get_version():
         return f.read().strip()
 
 def build_meta():
-    return {
-        "version": get_version(),
-    }
+    return { "version": get_version(), }
