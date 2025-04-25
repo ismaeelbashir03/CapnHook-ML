@@ -84,8 +84,8 @@ void register_ops(nanobind::module_& m) {
       // stats ops
       m.def("mean", static_cast<T (*)(nb::ndarray<T, nb::c_contig>)>(&mean),
             "Mean value");
-      m.def("median", static_cast<T (*)(nb::ndarray<T, nb::c_contig>)>(&median),
-            "Median value");
+      m.def("median", static_cast<T (*)(nb::ndarray<T, nb::c_contig>, bool)>(&median),
+            "Median value", nb::arg("array"), nb::arg("rng") = false);
       m.def("mode", static_cast<T (*)(nb::ndarray<T, nb::c_contig>)>(&mode),
             "Mode value");
       m.def("variance", static_cast<T (*)(nb::ndarray<T, nb::c_contig>)>(&variance),

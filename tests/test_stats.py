@@ -128,16 +128,10 @@ def test_covMatrix_and_corrMatrix(test_arrays):
         pytest.skip("corrMatrix not implemented")
 
 
-def test_histogram(test_arrays):
-    # use a small integer array so bins are easy to enumerate
-    arr = np.array([0,1,2,1,0,2,2,1,0], dtype=np.int32)
-    values = np.array([0,1,2], dtype=np.int32)
-    counts = np.zeros(3, dtype=np.int64)
+def test_histogram():
+    arr    = np.array([0,1,2,1,0,2,2,1,0], dtype=np.int32)
+    edges  = np.array([0, 1, 2, 3], dtype=np.int32)  # 3 bins → 4 edges
+    counts = np.zeros(3, dtype=np.uintp)             # match C size_t
 
-    # expected
-    np_cnts = np.array([3,3,3], dtype=np.int64)
-    try:
-        ch.histogram(arr, values, counts)
-        assert np.array_equal(counts, np_cnts)
-    except AttributeError:
-        pytest.skip("histogram not implemented")
+    ch.histogram(arr, edges, counts)
+    assert np.array_equal(counts, np.array([3, 3, 3], dtype=np.uintp))

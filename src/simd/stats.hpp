@@ -48,27 +48,34 @@ T mean(nb::ndarray<T, nb::c_contig> a) {
     return total / T(N);
 }
 
-
+/*
+Given a sorted array, return the median value using VQSelect, to get the 
+median value, we need to select the middle element (or the average of the two middle elements if N is even).
+*/
 template <typename T>
-inline T medianVQSort_(T* A, size_t N) {
-    VQSort(A, N, SortAscending());
-    // get the middle element
-    return A[N / 2];
-}
-
-template<typename T>
-inline T inRegisterMedian(T* A, size_t N) {
-    alignas(64) T buffer[64];
-    for (size_t i = 0; i < N; ++i) {
-        buffer[i] = A[i];
+inline T medianVQSelect_(T* A, size_t N) {
+    std::vector<T> copy(A, A + N);
+    
+    if (N % 2 == 0) {
+        size_t mid = N/2;
+        VQSelect(copy.data(), N, mid, SortAscending());
+        T high = copy[N/2];
+        
+        std::vector<T> copy2(A, A + N);
+        size_t midMinusOne = N/2-1;
+        VQSelect(copy2.data(), N, midMinusOne, SortAscending());
+        T low = copy2[N/2-1];
+        
+        return (low + high) / T(2);
+    } else {
+        size_t mid = N/2;
+        VQSelect(copy.data(), N, mid, SortAscending());
+        return copy[N/2];
     }
-    VQSort(buffer, N, SortAscending());
-    // get the middle element
-    return buffer[N / 2];
 }
 
 template <typename T>
-T median(nb::ndarray<T, nb::c_contig> a) {
+T median(nb::ndarray<T, nb::c_contig> a, bool rng = false) {
     T* A = a.data();
     const ScalableTag<T> d;
     const size_t L = Lanes(d);
@@ -77,170 +84,166 @@ T median(nb::ndarray<T, nb::c_contig> a) {
     if (N == 0) throw std::runtime_error("median: array must not be empty");
     if (N == 1) return A[0];
 
-    // FIXME: fix linker error 'hwy::VQSort(double*, unsigned long, hwy::SortAscending)"'
-    // for tiny arrays (less than SIMD width), we can put them in registers and sort (no branches/memory)
-    // if (N < L) return inRegisterMedian(A, N);
-    // // VQSort works best for sizes to ~64 (https://github.com/google/highway/blob/master/hwy/contrib/sort/README.md?utm_source=chatgpt.com)
-    // if (N <= 64) return medianVQSort_<T>(A, N);
-
-    // for larger arrays we do SIMD pivot search
-    std::uniform_int_distribution<size_t> dist(0, N - 1);
-    std::mt19937_64 rng;
-    size_t left = 0, right = N;
-    size_t k = N / 2; 
-
-  
-    while (true) {
-        T pivot = A[dist(rng)];  // random pivot
-        // temp buffers on stack (could be static/global if N large)
-        T* lo = new T[N];
-        T* hi = new T[N];
-        size_t lo_sz = 0, hi_sz = 0;
-        
-        // simd partitioning
-        for (size_t i = 0; i < N; i += L) {
-            auto v = Load(d, A + i);
-            auto mask = Lt(v,  Set(d, pivot));
-            lo_sz += CompressStore(v, mask, d, lo + lo_sz);
-            hi_sz += CompressStore(v, Not(mask), d, hi + hi_sz);
+    // for tiny arrays (less than SIMD width), we can just do insertion sort
+    if (N < L) {
+        for (size_t i = 1; i < N; i++) {
+            T key = A[i];
+            size_t j = i - 1;
+            while (j >= 0 && A[j] > key) {
+                A[j + 1] = A[j];
+                j--;
+            }
+            A[j + 1] = key;
         }
-
-        if (k < lo_sz) {
-            // median in lo
-            delete[] hi;
-            N = lo_sz;  
-            A = lo;
-        } else if (k >= lo_sz + 1) {
-            // median in hi
-            k -= lo_sz + 1;
-            delete[] lo;
-            N = hi_sz;  
-            A = hi;
+        if (N % 2 == 0) {
+            return (A[N / 2 - 1] + A[N / 2]) / T(2);
         } else {
-            // pivot is the median
-            delete[] lo;
-            delete[] hi;
-            return pivot;
+            return A[N / 2];
         }
     }
+    // VQSort(using VQSelect) works best for sizes to 32-128 (https://github.com/google/highway/blob/master/hwy/contrib/sort/README.md?utm_source=chatgpt.com)
+    return medianVQSelect_<T>(A, N);
 }
 
-template<typename T>
-void histogram(nb::ndarray<T, nb::c_contig> a, nb::ndarray<T, nb::c_contig> values, nb::ndarray<size_t, nb::c_contig> counts) {
-    T* A = a.data();
+template <typename T>
+void histogram(nb::ndarray<T, nb::c_contig> a,
+               nb::ndarray<T, nb::c_contig> bins_or_edges,
+               nb::ndarray<size_t, nb::c_contig> counts) {
     const size_t N = a.shape(0);
-    if (N == 0) return;
+    const size_t K = bins_or_edges.shape(0);
+    if (!N || !K) return;
 
-    const T* bins = values.data();
-    size_t* cnts = counts.data();
-    const size_t M = values.shape(0);
+    const bool edges = (K == counts.shape(0) + 1);
+    const size_t M = edges ? K - 1 : K;
 
-    // get bins
-    std::vector<decltype(Load(ScalableTag<T>(), bins))> bin_vecs(M);
-    for (size_t b = 0; b < M; ++b) {
-        bin_vecs[b] = Set(ScalableTag<T>(), bins[b]);
-    }
-
-    // byte buffer of size 8 for StoreMaskBits (BitsFromMask depricated)
-    uint8_t bits_buf[(((64 + 7)/8) )];
-
-    std::vector<size_t> local_cnt(M, 0);
-
+    std::vector<size_t> local(M, 0);
     const auto d = ScalableTag<T>();
     const size_t L = Lanes(d);
 
-    // SIMD histogram
+    auto* x = a.data();
+    const T* bin = bins_or_edges.data();
+
     for (size_t i = 0; i + L <= N; i += L) {
-        const auto v = Load(d, A + i);
-
+        auto v = Load(d, x + i);
         for (size_t b = 0; b < M; ++b) {
-        // mask the equal bins, extract bits, popcount
-        auto m = Eq(v, bin_vecs[b]);    
-        uint64_t bits = StoreMaskBits(d, m, bits_buf);
-        local_cnt[b] += __builtin_popcountll(bits);
+            Mask<decltype(d)> m;
+            if (edges) {
+                m = And(Ge(v, Set(d, bin[b])), Lt(v, Set(d, bin[b + 1])));
+            } else {
+                auto c = Set(d, bin[b]);
+                auto tol = Mul(Abs(c),
+                                    Set(d, T(1e-6)));
+                m = Le(Abs(Sub(v, c)), tol);
+            }
+            local[b] += CountTrue(d, m);
         }
     }
 
-    // remaining elements
-    for (size_t i = N - (N % L); i < N; ++i) {
+    for (size_t i = N - N % L; i < N; ++i) {
         for (size_t b = 0; b < M; ++b) {
-          if (A[i] == bins[b]) ++local_cnt[b];
-        }
-    }
-    
-    // add to out
-    for (size_t b = 0; b < M; ++b) cnts[b] = local_cnt[b];
-}
-
-template<typename T>
-T mode(nb::ndarray<T, nb::c_contig> a) {
-    T* A = a.data();
-    const size_t N = a.shape(0);
-    if (N == 0) throw std::runtime_error("mode: array must not be empty");
-    if (N == 1) return A[0];
-
-    const ScalableTag<T> d;
-    size_t L = Lanes(d);
-
-    if (N < L) {
-        size_t counts[N]; // list where index is index of array and value is count
-        for (size_t j = 0; j < N; j++) {
-            counts[j]++;
-        }
-        T mode = A[0];
-        size_t max_count = 0;
-        for (size_t j = 0; j < N; j++) {
-            if (counts[j] > max_count) {
-                max_count = counts[j];
-                mode = A[j];
+            if (edges) {
+                if (x[i] >= bin[b] && (b + 1 == K || x[i] < bin[b + 1]))
+                    ++local[b];
+            } else {
+                const T tol = std::abs(bin[b]) * T(1e-6);
+                if (std::abs(x[i] - bin[b]) <= tol) ++local[b];
             }
         }
-        return mode;
     }
 
-    // SIMD mode
-    std::vector<T> bins(N);
-    std::vector<size_t> counts(N);
-    histogram(a, nb::ndarray<T, nb::c_contig>(bins.data(), {N}), nb::ndarray<size_t, nb::c_contig>(counts.data(), {N}));
-
-    /*
-    size_t not supported in SIMD, so we need to use a scalar loop TODO: look into converting to int (but could have integer overflow :( )
-    */
-    // const ScalableTag<size_t> d_size_t_;
-    // int i = 0;
-    // T mode = bins[0];
-    // size_t max_count = counts[0];
-    // for (; i + L <= N; i += L) {
-    //     const auto v = Load(d, A + i);
-    //     const auto m = Load(d, counts.data() + i);
-    //     auto mask = Gt(m, Set(d, max_count));
-    //     uint64_t mask_bits = BitsFromMask(d, mask);
-    //     if (mask_bits) {
-    //         // get the index of the first set bit
-    //         size_t index = __builtin_ctzll(mask_bits);
-    //         max_count = counts[index];
-    //         mode = bins[index];
-    //     }
-    // }
-    // // remaining elements
-    // for (; i < N; ++i) {
-    //     if (counts[i] > max_count) {
-    //         max_count = counts[i];
-    //         mode = bins[i];
-    //     }
-    // }
-    // return mode;
-
-    size_t max_count = 0;
-    T mode_value = bins[0];
-    for (size_t i = 0; i < N; ++i) {
-        if (counts[i] > max_count) {
-            max_count = counts[i];
-            mode_value = bins[i];
-        }
-    }
-    return mode_value;
+    std::copy(local.begin(), local.end(), counts.data());
 }
+
+
+template <class T>
+T mode(nb::ndarray<T, nb::c_contig> a) {
+  T* A = a.data();
+  const size_t N = a.shape(0);
+  if (N == 0) throw std::runtime_error("mode: empty array");
+  if (N == 1) return A[0];
+
+  const auto d = ScalableTag<T>();
+  const size_t L = Lanes(d);
+
+  if constexpr (std::is_integral_v<T>) {
+    auto vmin = Load(d, A);
+    auto vmax = vmin;
+    for (size_t i = L; i + L <= N; i += L) {
+      auto v = Load(d, A + i);
+      vmin   = Min(vmin, v);
+      vmax   = Max(vmax, v);
+    }
+    T lo = ReduceMin(d, vmin);
+    T hi = ReduceMax(d, vmax);
+    if (hi - lo <= 65535) {
+      const size_t M = static_cast<size_t>(hi - lo + 1);
+      std::vector<size_t> bins(M, 0);
+
+      // SIMD histogram
+      for (size_t i = 0; i + L <= N; i += L) {
+        auto v = Sub(Load(d, A + i), Set(d, lo));
+        for (size_t b = 0; b < M; ++b) {
+          auto m = Eq(v, Set(d, static_cast<T>(b)));
+          bins[b] += CountTrue(d, m);
+        }
+      }
+      for (size_t i = N - N % L; i < N; ++i) ++bins[A[i] - lo];
+
+      // arg-max inside vector registers
+      size_t best_idx = 0, best_cnt = bins[0];
+      for (size_t i = 1; i < M; ++i)
+        if (bins[i] > best_cnt) { best_cnt = bins[i]; best_idx = i; }
+
+      return static_cast<T>(lo + best_idx);
+    }
+  }
+
+  std::vector<T> buf(A, A + N);
+  VQSort(buf.data(), N, SortAscending());
+
+  size_t best_cnt = 1, cur_cnt = 1;
+  T      best_val = buf[0], cur_val = buf[0];
+
+  size_t i = 1;
+  for (; i + L <= N; i += L) {
+    auto v = Load(d, buf.data() + i);
+    auto m = Eq(v, Set(d, cur_val));
+    cur_cnt += CountTrue(d, m);
+
+    // find lanes where value changes
+    for (size_t lane = 0; lane < L; ++lane) {
+      T val = GetLane(v);
+      if (val == cur_val) continue;
+      if (cur_cnt > best_cnt ||
+          (cur_cnt == best_cnt && cur_val < best_val)) {
+        best_cnt = cur_cnt;
+        best_val = cur_val;
+      }
+      cur_val = val;
+      cur_cnt = 1;
+    }
+  }
+  // tail
+  for (; i < N; ++i) {
+    if (buf[i] == cur_val)
+      ++cur_cnt;
+    else {
+      if (cur_cnt > best_cnt ||
+          (cur_cnt == best_cnt && cur_val < best_val)) {
+        best_cnt = cur_cnt;
+        best_val = cur_val;
+      }
+      cur_val = buf[i];
+      cur_cnt = 1;
+    }
+  }
+  if (cur_cnt > best_cnt ||
+      (cur_cnt == best_cnt && cur_val < best_val))
+    best_val = cur_val;
+
+  return best_val;
+}
+
 
 template<typename T>
 T variance(nb::ndarray<T, nb::c_contig> a) {
@@ -290,6 +293,7 @@ double covariance(nb::ndarray<T, nb::c_contig> a, nb::ndarray<T, nb::c_contig> b
     const size_t N = a.shape(0);
     if (N == 0) throw std::runtime_error("covariance: array must not be empty");
     if (N != b.shape(0)) throw std::runtime_error("covariance: arrays must have same size");
+    if (N == 1) return 0.0;
 
     double C = 0;
     const ScalableTag<T> d;
@@ -333,6 +337,11 @@ void covMatrix(nb::ndarray<double, nb::c_contig> cov_out, nb::ndarray<T, nb::c_c
     const size_t N = first.shape(0);
     
     if (N == 0) throw std::runtime_error("covMatrix: arrays must not be empty");
+    if (N == 1) {
+        PyErr_SetString(PyExc_AttributeError, "covMatrix: need at least two samples");
+        throw nb::python_error();
+    }
+    
     for (size_t i = 1; i < num_arrays; i++) {
         if (arrays[i].shape(0) != N) 
             throw std::runtime_error("covMatrix: all arrays must have the same length");
@@ -361,11 +370,13 @@ double correlation(nb::ndarray<T, nb::c_contig> a, nb::ndarray<T, nb::c_contig> 
     const size_t N = a.shape(0);
     if (N == 0) throw std::runtime_error("correlation: array must not be empty");
     if (N != b.shape(0)) throw std::runtime_error("correlation: arrays must have same size");
+    if (N == 1) return 0.0;
 
     double C = covariance(a, b);
     double stdA = stddev(a);
     double stdB = stddev(b);
-    return C / (stdA * stdB);
+    // stop div by zero
+    return (stdA == 0.0 || stdB == 0.0) ? 0.0: C / (stdA * stdB);
 }
 
 template<typename T, typename... Args>
@@ -378,6 +389,10 @@ void corrMatrix(nb::ndarray<double, nb::c_contig> corr_out, nb::ndarray<T, nb::c
     const size_t N = first.shape(0);
     
     if (N == 0) throw std::runtime_error("corrMatrix: arrays must not be empty");
+    if (N == 1) {
+        PyErr_SetString(PyExc_AttributeError, "covMatrix: need at least two samples");
+        throw nb::python_error();
+    }
     for (size_t i = 1; i < num_arrays; i++) {
         if (arrays[i].shape(0) != N) 
             throw std::runtime_error("corrMatrix: all arrays must have the same length");

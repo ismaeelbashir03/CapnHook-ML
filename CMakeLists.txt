@@ -66,6 +66,7 @@ target_sources(capnhook_ml PRIVATE
     src/simd/unary.hpp
     src/simd/reduce.hpp
     src/simd/linalg.hpp
+    src/simd/stats.hpp
 )
 
 target_include_directories(capnhook_ml PRIVATE
@@ -78,6 +79,7 @@ endif()
 
 target_link_libraries(capnhook_ml PRIVATE
     highway::hwy
+    highway::hwy_contrib
     OpenBLAS::OpenBLAS
 )
 
