@@ -138,3 +138,6 @@ def test_histogram():
         assert np.array_equal(counts, np.array([3, 3, 3], dtype=np.uintp))
     except AttributeError:
         pytest.skip("histogram not implemented")
+
+if __name__ == "__main__":
+    pytest.main(["-xvs", __file__])

@@ -84,6 +84,9 @@ target_link_libraries(capnhook_ml PRIVATE
     OpenBLAS::OpenBLAS
 )
 
+# issue where ci/cd pipeline has zero cores so highway aborts (but its not a problem)
+target_compile_definitions(capnhook_ml PRIVATE HWY_FORCE_MAX_CPUS=1)
+
 if(APPLE)
     target_compile_definitions(capnhook_ml PRIVATE USE_ACCELERATE)
     target_link_libraries(capnhook_ml PRIVATE "-framework Accelerate")
