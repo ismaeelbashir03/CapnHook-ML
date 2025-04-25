@@ -39,7 +39,7 @@ jobs:
           files: version.md
           commit_name: github-actions[bot]
           commit_email: github-actions[bot]@users.noreply.github.com
-          token: "${{ secrets.PYPI_API_TOKEN }}"
+          token: "${{ secrets.GITHUB_TOKEN }}"
 
       - name: Install dependencies
         run: |
