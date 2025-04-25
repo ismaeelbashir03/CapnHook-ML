@@ -34,10 +34,8 @@ jobs:
       - name: Bump version (patch)
         id: bump
         run: |
-          bump2version --allow-dirty \
-            --new-version "${{ steps.bump.outputs.new_version }}" \
-            patch --message "Bump to {new_version} [skip ci]"
-            
+          bump2version patch --allow-dirty --commit --message "[skip ci] Bump version: {current_version} → {new_version}"
+
       - name: Push version bump to repository
         run: |
           git config user.name "github-actions[bot]"
