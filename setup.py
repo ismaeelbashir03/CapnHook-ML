@@ -65,10 +65,14 @@ class build_ext(build_ext_orig):
         if not self.dry_run:
             subprocess.check_call(["cmake", "--build", str(build_dir),
                                "--config", cfg])
+            
+def get_version():
+    with open("version.md", "r") as f:
+        return f.read().strip()
 
 setup(
     name='capnhook_ml',
-    version='0.1',
+    version=get_version(),
     author='ismaeelbashir03',
     include_package_data=True,
     ext_modules=[CMakeExtension('capnhook_ml', sourcedir='.')],
