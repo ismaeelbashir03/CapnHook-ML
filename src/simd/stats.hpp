@@ -85,7 +85,8 @@ T median(nb::ndarray<T, nb::c_contig> a) {
     std::vector<T> buf(A, A + N);
     const size_t mid = N / 2;
 
-    VQSelect(buf.data(), N, mid, hwy::SortAscending());
+    // VQSelect(buf.data(), N, mid, hwy::SortAscending());
+    std::sort(buf.begin(), buf.end());
     if (N & 1) return buf[mid];
 
     const T hi = buf[mid];
