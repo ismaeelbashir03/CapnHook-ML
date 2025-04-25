@@ -88,7 +88,7 @@ T median(nb::ndarray<T, nb::c_contig> a) {
     if (N < L) {
         for (size_t i = 1; i < N; i++) {
             T key = A[i];
-            size_t j = i - 1;
+            ptrdiff_t j = static_cast<ptrdiff_t>(i) - 1;
             while (j >= 0 && A[j] > key) {
                 A[j + 1] = A[j];
                 j--;
