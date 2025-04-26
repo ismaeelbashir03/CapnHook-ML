@@ -4,7 +4,7 @@ set -euo pipefail
 git checkout main
 
 python -m pip install --upgrade pip
-python -m pip install build twine auditwheel scikit-build-core-conan
+python -m pip install build twine auditwheel scikit-build-core-conan numpy nanobind
 
 old=$(cat version.md)
 echo "current version $old"

@@ -30,7 +30,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install build twine auditwheel scikit-build-core-conan
+          python -m pip install build twine auditwheel scikit-build-core-conan numpy nanobind
 
       - name: Run release script
         run: bash ./release.sh
