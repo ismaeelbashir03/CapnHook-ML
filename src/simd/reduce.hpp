@@ -59,6 +59,7 @@ T reduce_min(nb::ndarray<T, nb::c_contig> a) {
     const ScalableTag<T> d;
     size_t L = Lanes(d);
     
+    // fallback for small arrays (less than SIMD width)
     if (N < L) {
         T min_val = A[0];
         for (size_t j = 1; j < N; j++) {
