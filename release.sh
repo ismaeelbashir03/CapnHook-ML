@@ -4,7 +4,7 @@ set -euo pipefail
 git checkout main
 
 python -m pip install --upgrade pip
-python -m pip install build twine auditwheel
+python -m pip install build twine auditwheel scikit-build-core-conan
 
 old=$(cat version.md)
 echo "current version $old"
