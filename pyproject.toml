@@ -27,7 +27,7 @@ test-command = "python -c 'import capnhook_ml; print(capnhook_ml.__version__)'"
 [project]
 name = "capnhook-ml"
 dynamic = ["version"]
-description = "Optimised SIMD libary for machine learning"
+description = "Optimised SIMD library for machine learning"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
