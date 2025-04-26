@@ -9,13 +9,11 @@ python -m pip install bump-my-version build twine
 old=$(cat version.md)
 echo "current version $old"
 
-bump-my-version bump \
-  --current-version "$old" \
-  patch version.md \
-  --commit --no-tag \
-  --commit-message "bumping version ayo [skip ci]"
-
-new=$(cat version.md)
+# 2) Split into major.minor.patch and bump the patch
+IFS='.' read -r major minor patch <<< "$old"
+patch=$(( patch + 1 ))
+new="$major.$minor.$patch"
+echo "$new" > version.md
 echo "New version: $new"
 
 git config user.name "github-actions[bot]"
