@@ -4,7 +4,7 @@ set -euo pipefail
 git checkout main
 
 python -m pip install --upgrade pip
-python -m pip install build twine auditwheel scikit-build-core-conan
+python -m pip install build twine auditwheel scikit-build-core-conan numpy nanobind
 
 old=$(cat version.md)
 echo "current version $old"
@@ -26,7 +26,7 @@ git push origin "v$new"
 
 # build and upload to PyPI
 # must do it this way as you cannot upload a linux_*.whl wheel to PyPI (https://peps.python.org/pep-0513/#rationale)
-python -m build --wheel --no-isolation
+python -m build -w -o dist/
 
 # https://stackoverflow.com/questions/59451069/binary-wheel-cant-be-uploaded-on-pypi-using-twine
 for whl in dist/*linux_x86_64.whl; do
