@@ -4,7 +4,7 @@ set -euo pipefail
 git checkout main
 
 python -m pip install --upgrade pip
-python -m pip install bump-my-version build twine
+python -m pip install build twine auditwheel
 
 old=$(cat version.md)
 echo "current version $old"
@@ -24,6 +24,15 @@ git push origin main
 git tag -a "v$new" -m "release v$new"
 git push origin "v$new"
 
-# 3. Build and upload to PyPI
-python -m build
-twine upload dist/*
+# build and upload to PyPI
+# must do it this way as you cannot upload a linux_*.whl wheel to PyPI (https://peps.python.org/pep-0513/#rationale)
+python -m build --wheel --no-isolation
+
+# https://stackoverflow.com/questions/59451069/binary-wheel-cant-be-uploaded-on-pypi-using-twine
+for whl in dist/*linux_x86_64.whl; do
+  auditwheel repair "$whl" --plat manylinux2014_x86_64 -w dist/
+done
+
+rm -f dist/*linux_x86_64.whl
+
+twine upload dist/*manylinux2014_x86_64.whl
