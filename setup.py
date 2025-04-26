@@ -36,7 +36,9 @@ class build_ext(build_ext_orig):
         subprocess.check_call([
             "conan", "install", str(root),
             "--output-folder", str(build_dir),
-            "--build=missing", "--profile=default"
+            "--build=missing",
+            "--update",
+            "-r",  "conancenter",
         ])
 
         toolchain = build_dir / "conan_toolchain.cmake"
